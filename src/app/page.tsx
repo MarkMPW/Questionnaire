@@ -1,7 +1,12 @@
 "use client";
 
 import Appbar from "./components/Appbar";
-import { Container, Paper, Box } from "@mui/material";
+import {
+  Box,
+  Snackbar,
+  styled,
+  SnackbarContent,
+} from "@mui/material";
 import Maincomponent from "./components/Maincomponent";
 import { grey } from "@mui/material/colors";
 import React, { useState } from "react";
@@ -24,7 +29,21 @@ export interface questionnaireType {
   questions: question[];
 }
 
+const StyleSnackbar = styled(SnackbarContent)<{checkerror: boolean}>(({ theme, checkerror }) => ({
+  backgroundColor: checkerror ? "red" : "green",
+  color: theme.palette.primary.contrastText,
+  "& .MuiSnackbarContent-message": {
+    display: "flex",
+    justifyContent: "center",
+    textAlignItem: "center", // how to move to the center of snackbar...
+  },
+}));
+
 export default function Home() {
+  const [open, setOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const [errorState, setErrorState] = useState<boolean>(false);
+
   const [questionnaire, setQuestionnaire] = useState<questionnaireType>({
     questionDetails: "",
     errorD: false,
@@ -66,17 +85,17 @@ export default function Home() {
 
   const handleSave = () => {
     let hasError = false;
+
     if (questionnaire.questionDetails.trim() === "") {
       setQuestionnaire((prev) => ({
         ...prev,
         errorD: true,
-        hasError: true,
       }));
+      hasError = true;
     } else {
       setQuestionnaire((prev) => ({
         ...prev,
         errorD: false,
-        hasError: true,
       }));
     }
 
@@ -85,7 +104,8 @@ export default function Home() {
       const updatedChoice = q.choices.map((c) => {
         let errorC = false;
         if (c.choiceDesc.trim() === "") {
-          (errorC = true), (hasError = true);
+          errorC = true;
+          hasError = true;
         }
         return {
           ...c,
@@ -112,7 +132,6 @@ export default function Home() {
       setQuestionnaire((prev) => ({
         ...prev,
         errorD: false,
-        hasError: false,
         questions: prev.questions.map((q) => ({
           ...q,
           errorQ: false,
@@ -122,20 +141,26 @@ export default function Home() {
           })),
         })),
       }));
+      setOpen(true);
+      setToastMessage("Questionnaire saved successfully");
+      setErrorState(false);
       console.log("Questionnaire", {
         questionDetails: questionnaire.questionDetails,
         questions: questionnaire.questions.map((q) => ({
           questions: q.question,
           choices: q.choices.map((c) => ({
             isCheck: c.isCheck,
-            choiceDesc: c.choiceDesc
-          }))
-        }))
-      })
+            choiceDesc: c.choiceDesc,
+          })),
+        })),
+      });
+    } else {
+      setOpen(true);
+      setToastMessage("Please fill in all options");
+      setErrorState(true);
     }
   };
 
-  
   const handleCancel = () => {
     setQuestionnaire((prev) => ({
       questionDetails: "",
@@ -177,6 +202,10 @@ export default function Home() {
     }));
   };
 
+  const handleToastClose = () => {
+    setOpen(false);
+  };
+
   return (
     <Box
       component="form"
@@ -187,6 +216,14 @@ export default function Home() {
         questionnaire={questionnaire}
         handleCancel={handleCancel}
       />
+      <Snackbar
+        open={open}
+        autoHideDuration={3000}
+        onClose={handleToastClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <StyleSnackbar message={toastMessage} checkerror={errorState}/>
+      </Snackbar>
       <Box sx={{ padding: "24px" }}>
         <Maincomponent
           handleSave={handleSave}

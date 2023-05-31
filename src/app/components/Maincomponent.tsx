@@ -7,13 +7,10 @@ import {
   IconButton,
   FormHelperText,
   Button,
-  FormControlLabel,
   Radio,
   FormControl,
-  RadioGroup,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -37,6 +34,7 @@ export default function Maincomponent({
       const newQuestion = {
         question: "",
         errorQ: false,
+        showDelete: false,
         choices: [
           {
             isCheck: false,
@@ -121,7 +119,11 @@ export default function Maincomponent({
         })),
       };
       // start at index question + 1 and remove 0 index after that insert duplicateQuestion
-      updatedQuestions.splice(questionIndex + updatedQuestions.length, 0, duplicatedQuestion);
+      updatedQuestions.splice(
+        questionIndex + updatedQuestions.length,
+        0,
+        duplicatedQuestion
+      );
       // console.log(updatedQuestions);
       return {
         ...prev,
@@ -131,37 +133,64 @@ export default function Maincomponent({
   };
 
   const onChangeDetail = (value: string) => {
-    setQuestionnaire((prevQuestionnaire) => ({
-      ...prevQuestionnaire,
-      questionDetails: value,
-    }));
+    if (questionnaire.questionDetails.trim() !== "") {
+      setQuestionnaire((prevQuestionD) => ({
+        ...prevQuestionD,
+        errorD: false,
+        questionDetails: value,
+      }));
+    } else {
+      setQuestionnaire((prevQuestionD) => ({
+        ...prevQuestionD,
+        questionDetails: value,
+      }));
+    }
   };
 
-  const onChangeQuestion = (
-    value: string,
-    name: string,
-    questionIndex: number,
-    choiceIndex?: number
-  ) => {
+  const onChangeQuestion = (value: string, questionIndex: number) => {
     setQuestionnaire((prevQuestion) => {
       const updatedQuestions = [...prevQuestion.questions];
       const updatedQuestion = { ...updatedQuestions[questionIndex] };
 
-      if (name === "question") {
-        updatedQuestion.question = value;
-      } else if (name === "choice" && typeof choiceIndex === "number") {
-        const updatedChoices = [...updatedQuestion.choices];
-        const updatedChoice = { ...updatedChoices[choiceIndex] };
-        updatedChoice.choiceDesc = value;
-        updatedChoices[choiceIndex] = updatedChoice;
-        updatedQuestion.choices = updatedChoices;
+      updatedQuestion.question = value;
+      if (updatedQuestion.question.trim() !== "") {
+        updatedQuestion.errorQ = false;
       }
+
       updatedQuestions[questionIndex] = updatedQuestion;
-      const updatedQuestionnaire = {
+
+      return {
         ...prevQuestion,
         questions: updatedQuestions,
       };
-      return updatedQuestionnaire;
+    });
+  };
+
+  const onChangeChoice = (
+    value: string,
+    questionIndex: number,
+    choiceIndex: number
+  ) => {
+    setQuestionnaire((prevQuestion) => {
+      const updatedQuestions = [...prevQuestion.questions];
+      const updatedQuestion = { ...updatedQuestions[questionIndex] };
+      const updatedChoices = [...updatedQuestion.choices];
+      const updatedChoice = { ...updatedChoices[choiceIndex] };
+  
+      updatedChoice.choiceDesc = value;
+  
+      if (updatedChoice.choiceDesc.trim() !== "") {
+        updatedChoice.errorC = false;
+      }
+  
+      updatedChoices[choiceIndex] = updatedChoice;
+      updatedQuestion.choices = updatedChoices;
+      updatedQuestions[questionIndex] = updatedQuestion;
+  
+      return {
+        ...prevQuestion,
+        questions: updatedQuestions,
+      };
     });
   };
 
@@ -170,8 +199,15 @@ export default function Maincomponent({
       const updatedQuestions = [...prevQuestionnaire.questions];
       const updatedChoices = [...updatedQuestions[questionIndex].choices];
 
+      console.log(prevQuestionnaire.questions);
+      console.log(updatedQuestions);
+
+      // Chcek the value in current checkbox that has been checked but how..? if it empty than the previos choice should display chcecked box
+
       updatedChoices.forEach((choice, index) => {
         choice.isCheck = index === choiceIndex;
+        if (choice === null) {
+        }
       });
 
       updatedQuestions[questionIndex].choices = updatedChoices;
@@ -229,9 +265,7 @@ export default function Maincomponent({
               error={question.errorQ}
               sx={{ width: "100%" }}
               value={question.question}
-              onChange={(e) =>
-                onChangeQuestion(e.target.value, e.target.name, questionIndex)
-              }
+              onChange={(e) => onChangeQuestion(e.target.value, questionIndex)}
             ></TextField>
             {question.errorQ && (
               <FormHelperText sx={{ color: "red", borderColor: "red" }}>
@@ -255,8 +289,10 @@ export default function Maincomponent({
                       name="isCheck"
                       checked={choice.isCheck}
                       onChange={() => onChangeRadio(questionIndex, choiceIndex)}
-                      sx={{ marginRight: "20px", }}
-                      checkedIcon={<CheckCircleIcon sx={{ color: "#00C62B " }} />}
+                      sx={{ marginRight: "20px" }}
+                      checkedIcon={
+                        <CheckCircleIcon sx={{ color: "#00C62B " }} />
+                      }
                     />
                   </FormControl>
                   <TextField
@@ -268,16 +304,18 @@ export default function Maincomponent({
                     error={choice.errorC}
                     value={choice.choiceDesc}
                     onChange={(e) =>
-                      onChangeQuestion(
-                        e.target.value,
-                        e.target.name,
-                        questionIndex,
-                        choiceIndex
-                      )
+                      onChangeChoice(e.target.value, questionIndex, choiceIndex)
                     }
                   ></TextField>
                   <IconButton
-                    sx={{ marginLeft: "10px" }}
+                    sx={{
+                      display:
+                        questionnaire.questions[questionIndex].choices
+                          .length === 1
+                          ? "none"
+                          : "inline-flex",
+                      marginLeft: "10px",
+                    }}
                     onClick={() => deleteChocie(questionIndex, choiceIndex)}
                   >
                     <DeleteOutlinedIcon />
@@ -301,8 +339,8 @@ export default function Maincomponent({
                     <FormHelperText
                       sx={{
                         marginLeft: "55px",
-                        position: "absolute", 
-                        fontWeight: 'bold'
+                        position: "absolute",
+                        fontWeight: "bold",
                       }}
                     >
                       This is the correct answer
@@ -314,7 +352,7 @@ export default function Maincomponent({
             <Box>
               <Button
                 startIcon={<AddIcon />}
-                sx={{ color: "#FF5C00", marginTop: "26px", marginLeft: "29px",}}
+                sx={{ color: "#FF5C00", marginTop: "26px", marginLeft: "29px" }}
                 onClick={() => addChoice(questionIndex)}
               >
                 ADD CHOICE
@@ -336,7 +374,14 @@ export default function Maincomponent({
                 </Button>
                 <Button
                   startIcon={<DeleteOutlinedIcon />}
-                  sx={{ color: "#00040C", fontSize: "14px" }}
+                  sx={{
+                    display:
+                      questionnaire.questions.length === 1
+                        ? "none"
+                        : "inline-flex",
+                    color: "#00040C",
+                    fontSize: "14px",
+                  }}
                   onClick={() => deleteQuestion(questionIndex)}
                 >
                   DELETE
