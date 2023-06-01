@@ -10,23 +10,20 @@ import {
   Radio,
   FormControl,
 } from "@mui/material";
+
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { grey } from "@mui/material/colors";
-import { questionnaireType, question, choice } from "../page";
+import { questionnaireType, question, choice } from "../../page";
+import { useStyles } from "./Maincomponent.styles";
 
-export default function Maincomponent({
-  handleSave,
+export function Maincomponent({
   setQuestionnaire,
   questionnaire,
-  handleCancel,
 }: {
-  handleSave: () => void;
   setQuestionnaire: React.Dispatch<React.SetStateAction<questionnaireType>>;
   questionnaire: questionnaireType;
-  handleCancel: () => void;
 }) {
   const addQuestion = () => {
     setQuestionnaire((prev) => {
@@ -93,38 +90,37 @@ export default function Maincomponent({
     setQuestionnaire((prevChoice) => {
       const updatedQuestions = [...prevChoice.questions];
       const updatedChoices = [...updatedQuestions[questionIndex].choices];
-  
+
       const deletingCurrentChoice = updatedChoices[choiceIndex].isCheck;
-  
+
       if (updatedChoices.length === 1) {
         return prevChoice;
       } else {
         updatedChoices.splice(choiceIndex, 1);
 
+        if (deletingCurrentChoice) {
+          let newCheckedIndex = -1;
 
-        if(deletingCurrentChoice){
-          let newCheckedIndex = -1
-
-          for(let i = choiceIndex - 1; i >= 0; i++){ 
-            if(updatedChoices[i].isCheck !== true){ // if the previous choice is not checked
-              newCheckedIndex = i // get the index and store in newCheckIndex
-              break
+          for (let i = choiceIndex - 1; i >= 0; i++) {
+            if (updatedChoices[i].isCheck !== true) {
+              // if the previous choice is not checked
+              newCheckedIndex = i; // get the index and store in newCheckIndex
+              break;
             }
           }
 
-          if(newCheckedIndex === -1){
-            for(let i = choiceIndex; i <= updatedChoices.length; i++){
-              if(updatedChoices[i].isCheck !== true){
-                newCheckedIndex = i
-                break
+          if (newCheckedIndex === -1) {
+            for (let i = choiceIndex; i <= updatedChoices.length; i++) {
+              if (updatedChoices[i].isCheck !== true) {
+                newCheckedIndex = i;
+                break;
               }
             }
           }
 
-          if(newCheckedIndex !== -1){
-            updatedChoices[newCheckedIndex].isCheck = true
+          if (newCheckedIndex !== -1) {
+            updatedChoices[newCheckedIndex].isCheck = true;
           }
-
         }
 
         updatedQuestions[questionIndex].choices = updatedChoices;
@@ -135,7 +131,7 @@ export default function Maincomponent({
       }
     });
   };
-  
+
   const duplicate = (questionIndex: number) => {
     setQuestionnaire((prev) => {
       const updatedQuestions = [...prev.questions];
@@ -154,7 +150,7 @@ export default function Maincomponent({
         0,
         duplicatedQuestion
       );
-      // console.log(updatedQuestions);
+
       return {
         ...prev,
         questions: updatedQuestions,
@@ -229,8 +225,8 @@ export default function Maincomponent({
       const updatedQuestions = [...prevQuestionnaire.questions];
       const updatedChoices = [...updatedQuestions[questionIndex].choices];
 
-      console.log(prevQuestionnaire.questions);
-      console.log(updatedQuestions);
+      // console.log(prevQuestionnaire.questions);
+      // console.log(updatedQuestions);
 
       updatedChoices.forEach((choice, index) => {
         choice.isCheck = index === choiceIndex;
@@ -245,25 +241,26 @@ export default function Maincomponent({
     });
   };
 
+  const classes = useStyles();
   return (
     <>
-      <Paper sx={{ padding: "24px", boxShadow: '0px 4px 8px rgba(8, 29, 31, 0.1)', borderBottom: 1, borderColor: grey[400] }}>
-        <Typography variant="h6" sx={{ fontWeight: "600" }}>
+      <Paper className={classes.paperD}>
+        <Typography variant="h6" fontWeight={600}>
           Questionaire Detail
         </Typography>
-        <Box sx={{ marginTop: "25px" }}>
+        <Box mt="25px">
           <TextField
             required
             id="outline-required"
             label="Name"
-            sx={{ width: "100%" }}
+            fullWidth={true}
             name="name"
             error={questionnaire.errorD}
             value={questionnaire.questionDetails}
             onChange={(e) => onChangeDetail(e.target.value)}
-          ></TextField>
+          />
           {questionnaire.errorD && (
-            <FormHelperText sx={{ color: "red", borderColor: "red" }}>
+            <FormHelperText className={classes.helperError}>
               Please fill in this option
             </FormHelperText>
           )}
@@ -273,14 +270,8 @@ export default function Maincomponent({
       {/* START QUESTION */}
       {questionnaire.questions.map(
         (question: question, questionIndex: number) => (
-          <Paper
-            sx={{ padding: "24px", boxShadow: ' 0px 4px 8px rgba(8, 29, 31, 0.1)', borderBottom: 1, borderColor: grey[400] }}
-            key={`questions-${questionIndex}`}
-          >
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: "600", marginBottom: "26px" }}
-            >
+          <Paper className={classes.paperQ} key={`questions-${questionIndex}`}>
+            <Typography variant="h6" fontWeight={600} mb="26px">
               Question {questionIndex + 1}
             </Typography>
             <TextField
@@ -289,12 +280,12 @@ export default function Maincomponent({
               label="Question"
               name="question"
               error={question.errorQ}
-              sx={{ width: "100%" }}
+              fullWidth={true}
               value={question.question}
               onChange={(e) => onChangeQuestion(e.target.value, questionIndex)}
-            ></TextField>
+            />
             {question.errorQ && (
-              <FormHelperText sx={{ color: "red", borderColor: "red" }}>
+              <FormHelperText className={classes.helperError}>
                 Please input this option
               </FormHelperText>
             )}
@@ -302,37 +293,34 @@ export default function Maincomponent({
             {/* Choices */}
             {question.choices.map((choice: choice, choiceIndex: number) => (
               <Box key={`choices-${choiceIndex}`}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    marginTop: "42px",
-                    alignItems: "center",
-                  }}
-                >
+                <Box className={classes.boxQ}>
                   <FormControl>
                     {/*use onChange to check if the radio is checked or not HINT: use array loop through the choice if the current radio is false change it to true and change all of array to false*/}
-                    <Radio
-                      name="isCheck"
-                      checked={choice.isCheck}
-                      onChange={() => onChangeRadio(questionIndex, choiceIndex)}
-                      sx={{ marginRight: "20px" }}
-                      checkedIcon={
-                        <CheckCircleIcon sx={{ color: "#00C62B " }} />
-                      }
-                    />
+                    <Box mr="20px">
+                      <Radio
+                        name="isCheck"
+                        checked={choice.isCheck}
+                        onChange={() =>
+                          onChangeRadio(questionIndex, choiceIndex)
+                        }
+                        checkedIcon={
+                          <CheckCircleIcon sx={{ color: "#00C62B " }} />
+                        }
+                      />
+                    </Box>
                   </FormControl>
                   <TextField
                     required
                     id="outline-required"
                     label="Description"
-                    sx={{ width: "100%" }}
+                    fullWidth={true}
                     name="choice"
                     error={choice.errorC}
                     value={choice.choiceDesc}
                     onChange={(e) =>
                       onChangeChoice(e.target.value, questionIndex, choiceIndex)
                     }
-                  ></TextField>
+                  />
                   <IconButton
                     sx={{
                       display:
@@ -348,52 +336,33 @@ export default function Maincomponent({
                   </IconButton>
                 </Box>
                 {choice.errorC && (
-                  <FormHelperText
-                    sx={{
-                      color: "red",
-                      border: "red",
-                      marginLeft: "53px",
-                      position: "absolute",
-                    }}
-                  >
+                  <FormHelperText className={classes.helperErrorC}>
                     Please input this option
                   </FormHelperText>
                 )}
                 {choice.isCheck &&
                   !choice.errorC &&
                   choice.choiceDesc.trim() !== "" && (
-                    <FormHelperText
-                      sx={{
-                        marginLeft: "55px",
-                        position: "absolute",
-                        fontWeight: "bold",
-                      }}
-                    >
+                    <FormHelperText className={classes.helperCorrect}>
                       This is the correct answer
                     </FormHelperText>
                   )}
               </Box>
             ))}
 
-            <Box>
+            <Box mt="26px">
               <Button
                 startIcon={<AddIcon />}
-                sx={{ color: "#FF5C00", marginTop: "26px" }}
+                sx={{ color: "#FF5C00" }}
                 onClick={() => addChoice(questionIndex)}
               >
                 ADD CHOICE
               </Button>
-              <Box
-                sx={{ border: 1, borderColor: grey[400], margin: "25px 0px"}}
-              ></Box>
+              <Box className={classes.lineBox}></Box>
               <Box>
                 <Button
                   startIcon={<ContentCopyIcon />}
-                  sx={{
-                    color: "#00040C",
-                    fontSize: "14px",
-                    marginRight: "26px",
-                  }}
+                  className={classes.dupStarIcon}
                   onClick={() => duplicate(questionIndex)}
                 >
                   DUPLICATE
@@ -419,16 +388,10 @@ export default function Maincomponent({
       )}
 
       {/* ADD QUESTION */}
-      <Paper sx={{ padding: "24px", boxShadow: '0px 4px 8px rgba(8, 29, 31, 0.1)'}}>
+      <Paper className={classes.paperAQ}>
         <Button
           startIcon={<AddIcon />}
-          sx={{
-            border: 1,
-            width: "100%",
-            color: "#FF5C00",
-            borderColor: "#FF5C00",
-            padding: "13px 0px",
-          }}
+          className={classes.addQStarIcon}
           onClick={addQuestion}
         >
           ADD QUESTION
