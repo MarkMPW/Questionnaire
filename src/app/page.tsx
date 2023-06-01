@@ -29,8 +29,8 @@ export interface questionnaireType {
   questions: question[];
 }
 
-const StyleSnackbar = styled(SnackbarContent)<{checkerror: boolean}>(({ theme, checkerror }) => ({
-  backgroundColor: checkerror ? "red" : "green",
+const StyleSnackbar = styled(SnackbarContent)<{checkerror: string}>(({ theme, checkerror }) => ({
+  backgroundColor: checkerror === "true" ? "red" : "green",
   color: theme.palette.primary.contrastText,
   "& .MuiSnackbarContent-message": {
     display: "flex",
@@ -42,7 +42,7 @@ const StyleSnackbar = styled(SnackbarContent)<{checkerror: boolean}>(({ theme, c
 export default function Home() {
   const [open, setOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
-  const [errorState, setErrorState] = useState<boolean>(false);
+  const [errorState, setErrorState] = useState<string>("");
 
   const [questionnaire, setQuestionnaire] = useState<questionnaireType>({
     questionDetails: "",
@@ -143,7 +143,7 @@ export default function Home() {
       }));
       setOpen(true);
       setToastMessage("Questionnaire saved successfully");
-      setErrorState(false);
+      setErrorState("false");
       console.log("Questionnaire", {
         questionDetails: questionnaire.questionDetails,
         questions: questionnaire.questions.map((q) => ({
@@ -157,7 +157,7 @@ export default function Home() {
     } else {
       setOpen(true);
       setToastMessage("Please fill in all options");
-      setErrorState(true);
+      setErrorState("true");
     }
   };
 
@@ -209,7 +209,7 @@ export default function Home() {
   return (
     <Box
       component="form"
-      sx={{ width: "100%", height: "100%", backgroundColor: grey[100] }}
+      sx={{ width: "100%", height: "100%", backgroundColor: grey[100], boxSizing: 'border-box' }}
     >
       <Appbar
         handleSave={handleSave}
@@ -222,7 +222,7 @@ export default function Home() {
         onClose={handleToastClose}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <StyleSnackbar message={toastMessage} checkerror={errorState}/>
+        <StyleSnackbar message={toastMessage} checkerror={errorState.toString()}/>
       </Snackbar>
       <Box sx={{ padding: "24px" }}>
         <Maincomponent

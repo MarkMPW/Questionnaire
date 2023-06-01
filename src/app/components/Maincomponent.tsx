@@ -37,7 +37,7 @@ export default function Maincomponent({
         showDelete: false,
         choices: [
           {
-            isCheck: false,
+            isCheck: true,
             choiceDesc: "",
             errorC: false,
           },
@@ -89,23 +89,53 @@ export default function Maincomponent({
     });
   };
 
-  const deleteChocie = (questionIndex: number, choiceIndex: number) => {
-    setQuestionnaire((prevChocie) => {
-      const updatedQuestion = [...prevChocie.questions];
-      const updatedChoice = [...updatedQuestion[questionIndex].choices];
-      if (updatedChoice.length === 1) {
-        return prevChocie;
+  const deleteChoice = (questionIndex: number, choiceIndex: number) => {
+    setQuestionnaire((prevChoice) => {
+      const updatedQuestions = [...prevChoice.questions];
+      const updatedChoices = [...updatedQuestions[questionIndex].choices];
+  
+      const deletingCurrentChoice = updatedChoices[choiceIndex].isCheck;
+  
+      if (updatedChoices.length === 1) {
+        return prevChoice;
       } else {
-        updatedChoice.splice(choiceIndex, 1);
-        updatedQuestion[questionIndex].choices = updatedChoice;
+        updatedChoices.splice(choiceIndex, 1);
+
+
+        if(deletingCurrentChoice){
+          let newCheckedIndex = -1
+
+          for(let i = choiceIndex - 1; i >= 0; i++){ 
+            if(updatedChoices[i].isCheck !== true){ // if the previous choice is not checked
+              newCheckedIndex = i // get the index and store in newCheckIndex
+              break
+            }
+          }
+
+          if(newCheckedIndex === -1){
+            for(let i = choiceIndex; i <= updatedChoices.length; i++){
+              if(updatedChoices[i].isCheck !== true){
+                newCheckedIndex = i
+                break
+              }
+            }
+          }
+
+          if(newCheckedIndex !== -1){
+            updatedChoices[newCheckedIndex].isCheck = true
+          }
+
+        }
+
+        updatedQuestions[questionIndex].choices = updatedChoices;
         return {
-          ...prevChocie,
-          questions: updatedQuestion,
+          ...prevChoice,
+          questions: updatedQuestions,
         };
       }
     });
   };
-
+  
   const duplicate = (questionIndex: number) => {
     setQuestionnaire((prev) => {
       const updatedQuestions = [...prev.questions];
@@ -133,11 +163,11 @@ export default function Maincomponent({
   };
 
   const onChangeDetail = (value: string) => {
+    questionnaire.questionDetails = value;
     if (questionnaire.questionDetails.trim() !== "") {
       setQuestionnaire((prevQuestionD) => ({
         ...prevQuestionD,
         errorD: false,
-        questionDetails: value,
       }));
     } else {
       setQuestionnaire((prevQuestionD) => ({
@@ -176,17 +206,17 @@ export default function Maincomponent({
       const updatedQuestion = { ...updatedQuestions[questionIndex] };
       const updatedChoices = [...updatedQuestion.choices];
       const updatedChoice = { ...updatedChoices[choiceIndex] };
-  
+
       updatedChoice.choiceDesc = value;
-  
+
       if (updatedChoice.choiceDesc.trim() !== "") {
         updatedChoice.errorC = false;
       }
-  
+
       updatedChoices[choiceIndex] = updatedChoice;
       updatedQuestion.choices = updatedChoices;
       updatedQuestions[questionIndex] = updatedQuestion;
-  
+
       return {
         ...prevQuestion,
         questions: updatedQuestions,
@@ -202,12 +232,8 @@ export default function Maincomponent({
       console.log(prevQuestionnaire.questions);
       console.log(updatedQuestions);
 
-      // Chcek the value in current checkbox that has been checked but how..? if it empty than the previos choice should display chcecked box
-
       updatedChoices.forEach((choice, index) => {
         choice.isCheck = index === choiceIndex;
-        if (choice === null) {
-        }
       });
 
       updatedQuestions[questionIndex].choices = updatedChoices;
@@ -221,11 +247,11 @@ export default function Maincomponent({
 
   return (
     <>
-      <Paper sx={{ padding: "24px" }}>
+      <Paper sx={{ padding: "24px", boxShadow: '0px 4px 8px rgba(8, 29, 31, 0.1)', borderBottom: 1, borderColor: grey[400] }}>
         <Typography variant="h6" sx={{ fontWeight: "600" }}>
           Questionaire Detail
         </Typography>
-        <Box sx={{ paddingTop: "25px" }}>
+        <Box sx={{ marginTop: "25px" }}>
           <TextField
             required
             id="outline-required"
@@ -248,7 +274,7 @@ export default function Maincomponent({
       {questionnaire.questions.map(
         (question: question, questionIndex: number) => (
           <Paper
-            sx={{ padding: "24px", marginTop: "2px" }}
+            sx={{ padding: "24px", boxShadow: ' 0px 4px 8px rgba(8, 29, 31, 0.1)', borderBottom: 1, borderColor: grey[400] }}
             key={`questions-${questionIndex}`}
           >
             <Typography
@@ -316,7 +342,7 @@ export default function Maincomponent({
                           : "inline-flex",
                       marginLeft: "10px",
                     }}
-                    onClick={() => deleteChocie(questionIndex, choiceIndex)}
+                    onClick={() => deleteChoice(questionIndex, choiceIndex)}
                   >
                     <DeleteOutlinedIcon />
                   </IconButton>
@@ -352,15 +378,15 @@ export default function Maincomponent({
             <Box>
               <Button
                 startIcon={<AddIcon />}
-                sx={{ color: "#FF5C00", marginTop: "26px", marginLeft: "29px" }}
+                sx={{ color: "#FF5C00", marginTop: "26px" }}
                 onClick={() => addChoice(questionIndex)}
               >
                 ADD CHOICE
               </Button>
               <Box
-                sx={{ border: 1, borderColor: grey[400], margin: "25px 24px" }}
+                sx={{ border: 1, borderColor: grey[400], margin: "25px 0px"}}
               ></Box>
-              <Box sx={{ padding: "12px 24px" }}>
+              <Box>
                 <Button
                   startIcon={<ContentCopyIcon />}
                   sx={{
@@ -393,7 +419,7 @@ export default function Maincomponent({
       )}
 
       {/* ADD QUESTION */}
-      <Paper sx={{ padding: "24px" }}>
+      <Paper sx={{ padding: "24px", boxShadow: '0px 4px 8px rgba(8, 29, 31, 0.1)'}}>
         <Button
           startIcon={<AddIcon />}
           sx={{
