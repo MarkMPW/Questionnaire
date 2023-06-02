@@ -99,27 +99,18 @@ export function Maincomponent({
         updatedChoices.splice(choiceIndex, 1);
 
         if (deletingCurrentChoice) {
-          let newCheckedIndex = -1;
-
-          for (let i = choiceIndex - 1; i >= 0; i++) {
+          let newCheckedChoice = -1;
+          for (let i = choiceIndex; i < updatedChoices.length; i++) {
             if (updatedChoices[i].isCheck !== true) {
-              // if the previous choice is not checked
-              newCheckedIndex = i; // get the index and store in newCheckIndex
+              newCheckedChoice = i;
               break;
             }
           }
 
-          if (newCheckedIndex === -1) {
-            for (let i = choiceIndex; i <= updatedChoices.length; i++) {
-              if (updatedChoices[i].isCheck !== true) {
-                newCheckedIndex = i;
-                break;
-              }
-            }
-          }
-
-          if (newCheckedIndex !== -1) {
-            updatedChoices[newCheckedIndex].isCheck = true;
+          if(newCheckedChoice !== -1){
+            updatedChoices[newCheckedChoice].isCheck = true;
+          } else{
+            updatedChoices[0].isCheck = true
           }
         }
 
@@ -224,9 +215,6 @@ export function Maincomponent({
     setQuestionnaire((prevQuestionnaire) => {
       const updatedQuestions = [...prevQuestionnaire.questions];
       const updatedChoices = [...updatedQuestions[questionIndex].choices];
-
-      // console.log(prevQuestionnaire.questions);
-      // console.log(updatedQuestions);
 
       updatedChoices.forEach((choice, index) => {
         choice.isCheck = index === choiceIndex;
